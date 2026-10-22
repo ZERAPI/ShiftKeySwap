@@ -1,17 +1,22 @@
 // Programme shift swap
 // Ce programme desactive Verr Maj des l'appui sur shift (priorite aux minuscules).
 // Shift + touche = majuscule momentanee, retour en minuscule au relachement.
-// Application sans console : icone dans la zone de notification, clic droit > Quitter.
+// Application sans console : icone dans la zone de notification, clic droit pour
+// activer le lancement au demarrage ou quitter.
 //
 // Compilation :
 //   windres ShiftSwap.rc -O coff -o ShiftSwap_res.o
-//   gcc -mwindows -O2 ShiftSwap.c ShiftSwap_res.o -o ShiftSwap.exe -luser32 -lshell32
+//   gcc -mwindows -O2 ShiftSwap.c ShiftSwap_res.o -o ShiftSwap.exe -luser32 -lshell32 -ladvapi32
 
 #include <windows.h>
 #include <shellapi.h>
 
 #define WM_TRAYICON (WM_APP + 1)
 #define ID_TRAY_QUIT 1001
+#define ID_TRAY_AUTOSTART 1002
+
+#define RUN_KEY "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+#define RUN_VALUE "ShiftSwap"
 
 static HHOOK hKeyHook = NULL;
 
@@ -26,6 +31,45 @@ static void ToggleCapsLock(void)
     in[1].ki.dwFlags = KEYEVENTF_KEYUP;
 
     SendInput(2, in, sizeof(INPUT));
+}
+
+static BOOL IsAutoStart(void)
+{
+    HKEY key;
+    LONG res;
+
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, RUN_KEY, 0, KEY_QUERY_VALUE, &key) != ERROR_SUCCESS)
+        return FALSE;
+    res = RegQueryValueEx(key, RUN_VALUE, NULL, NULL, NULL, NULL);
+    RegCloseKey(key);
+    return res == ERROR_SUCCESS;
+}
+
+static void SetAutoStart(BOOL enable)
+{
+    HKEY key;
+    char path[MAX_PATH + 2];
+    DWORD len;
+
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, RUN_KEY, 0, KEY_SET_VALUE, &key) != ERROR_SUCCESS)
+        return;
+
+    if (enable)
+    {
+        // Chemin entre guillemets (gere les espaces)
+        path[0] = '"';
+        len = GetModuleFileName(NULL, path + 1, MAX_PATH);
+        if (len > 0 && len < MAX_PATH)
+        {
+            path[len + 1] = '"';
+            path[len + 2] = 0;
+            RegSetValueEx(key, RUN_VALUE, 0, REG_SZ, (const BYTE *)path, len + 3);
+        }
+    }
+    else
+        RegDeleteValue(key, RUN_VALUE);
+
+    RegCloseKey(key);
 }
 
 LRESULT CALLBACK KeyboardProc(int nCode,
@@ -61,6 +105,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HMENU menu = CreatePopupMenu();
 
             GetCursorPos(&pt);
+            AppendMenu(menu, MF_STRING | (IsAutoStart() ? MF_CHECKED : 0),
+                       ID_TRAY_AUTOSTART, "Lancer au demarrage");
             AppendMenu(menu, MF_STRING, ID_TRAY_QUIT, "Quitter");
 
             // Necessaire pour que le menu se ferme au clic ailleurs
@@ -72,7 +118,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_COMMAND:
-        if (LOWORD(wParam) == ID_TRAY_QUIT)
+        if (LOWORD(wParam) == ID_TRAY_AUTOSTART)
+            SetAutoStart(!IsAutoStart());
+        else if (LOWORD(wParam) == ID_TRAY_QUIT)
             DestroyWindow(hwnd);
         return 0;
 
