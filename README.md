@@ -1,4 +1,4 @@
-# ShiftSwap
+# ShiftKeySwap
 
 Petit utilitaire Windows qui rétablit un comportement disparu de Windows 10 : **appuyer sur Shift désactive Verr Maj**.
 
@@ -15,24 +15,24 @@ Le programme utilise un hook clavier global (`SetWindowsHookEx`) et n'envoie rie
 
 ## Utilisation
 
-Téléchargez `ShiftSwap.exe` depuis la page [Releases](../../releases) et lancez-le. Pour qu'il démarre avec Windows, cochez « Lancer au demarrage » dans le menu de l'icône.
+Téléchargez `ShiftKeySwap.exe` depuis la page [Releases](../../releases) et lancez-le. Pour qu'il démarre avec Windows, cochez « Lancer au demarrage » dans le menu de l'icône.
 
 ## Compilation
 
 Nécessite [MinGW-w64 / TDM-GCC](https://jmeubank.github.io/tdm-gcc/) (`gcc` et `windres` dans le PATH) :
 
 ```
-windres ShiftSwap.rc -O coff -o ShiftSwap_res.o
-gcc -mwindows -O2 ShiftSwap.c ShiftSwap_res.o -o ShiftSwap.exe -luser32 -lshell32 -ladvapi32
+windres ShiftKeySwap.rc -O coff -o ShiftKeySwap_res.o
+gcc -mwindows -O2 ShiftKeySwap.c ShiftKeySwap_res.o -o ShiftKeySwap.exe -luser32 -lshell32 -ladvapi32
 ```
 
 ## Fichiers
 
 | Fichier | Rôle |
 |---|---|
-| `ShiftSwap.c` | Code source |
-| `ShiftSwap.rc` | Ressources (icône) |
-| `ShiftSwap.ico` | Icône |
+| `ShiftKeySwap.c` | Code source |
+| `ShiftKeySwap.rc` | Ressources (icône) |
+| `ShiftKeySwap.ico` | Icône |
 
 ## Licence
 

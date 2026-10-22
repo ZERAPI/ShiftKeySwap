@@ -1,12 +1,12 @@
-// Programme shift swap
+// Programme ShiftKeySwap
 // Ce programme desactive Verr Maj des l'appui sur shift (priorite aux minuscules).
 // Shift + touche = majuscule momentanee, retour en minuscule au relachement.
 // Application sans console : icone dans la zone de notification, clic droit pour
 // activer le lancement au demarrage ou quitter.
 //
 // Compilation :
-//   windres ShiftSwap.rc -O coff -o ShiftSwap_res.o
-//   gcc -mwindows -O2 ShiftSwap.c ShiftSwap_res.o -o ShiftSwap.exe -luser32 -lshell32 -ladvapi32
+//   windres ShiftKeySwap.rc -O coff -o ShiftKeySwap_res.o
+//   gcc -mwindows -O2 ShiftKeySwap.c ShiftKeySwap_res.o -o ShiftKeySwap.exe -luser32 -lshell32 -ladvapi32
 
 #include <windows.h>
 #include <shellapi.h>
@@ -16,7 +16,7 @@
 #define ID_TRAY_AUTOSTART 1002
 
 #define RUN_KEY "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
-#define RUN_VALUE "ShiftSwap"
+#define RUN_VALUE "ShiftKeySwap"
 
 static HHOOK hKeyHook = NULL;
 
@@ -145,16 +145,16 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmdLine, int nShow)
     (void)nShow;
 
     // Une seule instance a la fois
-    mutex = CreateMutex(NULL, TRUE, "ShiftSwap_SingleInstance");
+    mutex = CreateMutex(NULL, TRUE, "ShiftKeySwap_SingleInstance");
     if (GetLastError() == ERROR_ALREADY_EXISTS)
         return 0;
 
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInst;
-    wc.lpszClassName = "ShiftSwapWnd";
+    wc.lpszClassName = "ShiftKeySwapWnd";
     RegisterClass(&wc);
 
-    hwnd = CreateWindow(wc.lpszClassName, "ShiftSwap", 0,
+    hwnd = CreateWindow(wc.lpszClassName, "ShiftKeySwap", 0,
                         0, 0, 0, 0, NULL, NULL, hInst, NULL);
     if (hwnd == NULL)
         return 1;
@@ -167,7 +167,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmdLine, int nShow)
     nid.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(1));
     if (nid.hIcon == NULL)
         nid.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    lstrcpy(nid.szTip, "ShiftSwap - Shift force les minuscules");
+    lstrcpy(nid.szTip, "ShiftKeySwap - Shift force les minuscules");
     Shell_NotifyIcon(NIM_ADD, &nid);
 
     hKeyHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc,
@@ -176,7 +176,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmdLine, int nShow)
     if (hKeyHook == NULL)
     {
         MessageBox(NULL, "Impossible d'installer le hook clavier.",
-                   "ShiftSwap", MB_OK | MB_ICONERROR);
+                   "ShiftKeySwap", MB_OK | MB_ICONERROR);
         Shell_NotifyIcon(NIM_DELETE, &nid);
         return 1;
     }
